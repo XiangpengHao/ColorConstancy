@@ -23,14 +23,26 @@ class SpectralImage:
             wave_length_map[c] = channel_data
         self.wave_length_map = wave_length_map
 
-    def __getitem__(self, wavelength: int):
-        return self.wave_length_map[wavelength]
+    def dump_to_sRGB_image(self, output: str):
+        pass
 
     @property
     def header(self):
         return self.img_file.header()
 
+    def __getitem__(self, wavelength: int):
+        return self.wave_length_map[wavelength]
+
 
 class BaseBench:
-    def __init__(self):
+    def __init__(self, test_img: SpectralImage, truth_img: SpectralImage):
+        pass
+
+    def get_test_reflectance(self)->SpectralImage:
+        pass
+
+    def get_test_emission_map(self)->SpectralImage:
+        pass
+
+    def get_score(self)->float:
         pass
