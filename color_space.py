@@ -1,4 +1,3 @@
-from __future__ import annotations
 from typing import List, Union, Dict
 import json
 import numpy as np
@@ -30,7 +29,7 @@ class RGB:
         self.spec_type: SpecType = spec_type
         self.np_rgb: np.ndarray = np.asarray([r, g, b])
 
-    def to_xyz(self) -> XYZ:
+    def to_xyz(self):
         rgb_gamma_rev = [utils.gamma_correct_rev(v) for v in self.np_rgb]
         xyz = np.matmul(utils.RGB2XYZ, rgb_gamma_rev)
         return XYZ(xyz[0], xyz[1], xyz[2])
@@ -52,7 +51,7 @@ class XYZ:
         self.spec_type: SpecType = spec_type
         self.np_xyz: np.ndarray = np.asarray([x, y, z])
 
-    def norm(self) -> XYZ:
+    def norm(self):
         xyz_sum = sum(self.np_xyz)
         if xyz_sum == 0:
             return XYZ(0, 0, 0)

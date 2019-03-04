@@ -2,7 +2,6 @@ import numpy as np
 from typing import Tuple, Union, List
 import warnings
 import math
-from numba import jit, float64
 import functools
 
 np.seterr(all='raise')
@@ -43,7 +42,6 @@ def xyz_in_srgb(xyz: np.ndarray) -> bool:
         same_side(xy_point, B_xy, R_xy, G_xy)
 
 
-@jit(float64(float64), nopython=True)
 def gamma_correct(v: float) -> float:
     if v <= 0.0031308:
         return 12.92 * v
@@ -51,7 +49,6 @@ def gamma_correct(v: float) -> float:
         return (1 + 0.055) * (v ** (1 / 2.4)) - 0.055
 
 
-# @jit(float64(float64), nopython=True)
 @functools.lru_cache(maxsize=256)
 def gamma_correct_rev(v: float) -> float:
     if v <= 0.04045:
