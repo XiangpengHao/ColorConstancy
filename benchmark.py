@@ -12,26 +12,36 @@ channels: [int] = list(range(400, 700, 5))
 
 
 class SpectralImage:
-    def __init__(self, file_path):
-        self.img_file = OpenEXR.InputFile(file_path)
-        dw = self.img_file.header()['dataWindow']
-        self.img_shape = (dw.max.y - dw.min.y + 1, dw.max.x - dw.min.x + 1)
+    def __init__(self, img_file=None, spectrum=np.ndarray):
+        self.img_file = img_file
+        self.img_shape = spectrum.shape[:-1]
+        self.spectrum = spectrum
+
+    @classmethod
+    def NewFromSpectrum(cls, spectrum: np.ndarray):
+        return SpectralImage(None, spectrum)
+
+    @classmethod
+    def NewFromFile(cls, file_path: str):
+        img_file = OpenEXR.InputFile(file_path)
+        dw = img_file.header()['dataWindow']
+        img_shape = (dw.max.y - dw.min.y + 1, dw.max.x - dw.min.x + 1)
 
         wave_length_map: Dict[int, np.ndarray] = {}
         for c in channels:
-            buffed = self.img_file.channel(str(c), half_pixel)
+            buffed = img_file.channel(str(c), half_pixel)
             channel_data = np.frombuffer(buffed, dtype=np.float16)
-            wave_length_map[c] = channel_data.reshape((*self.img_shape, 1))
+            wave_length_map[c] = channel_data.reshape((*img_shape, 1))
 
         # in case the wave length in the headers are not sorted
         sorted_waves = sorted(wave_length_map.keys())
         spectrum = wave_length_map[sorted_waves[0]]
         for key in sorted_waves[1:]:
             spectrum = np.append(spectrum, wave_length_map[key], axis=2)
+        # pad to 400, 700 inclusive
         spectrum = np.append(
             spectrum, wave_length_map[sorted_waves[-1]], axis=2)
-        self.spectrum = spectrum
-        self.wavelength_map = wave_length_map
+        return SpectralImage(img_file, spectrum)
 
     def dump_to_sRGB_image(self, output: str):
         rgb_image = np.zeros(
@@ -55,12 +65,13 @@ class SpectralImage:
         return self.img_file.header()
 
     def __getitem__(self, wavelength: int):
-        return self.wavelength_map[wavelength]
+        return self.spectrum[:, :, (wavelength-400)//5]
 
 
 class BaseBench:
     def __init__(self, test_img: SpectralImage, truth_img: SpectralImage):
-        pass
+        self.test_img = test_img
+        self.ground_truth = truth_img
 
     def get_test_reflectance(self)->SpectralImage:
         pass
@@ -68,5 +79,8 @@ class BaseBench:
     def get_test_emission_map(self)->SpectralImage:
         pass
 
+    # probably we should have a evalute
+    # interface for different evalute methods
     def get_score(self)->float:
+        # currently we do euclidean distance
         pass

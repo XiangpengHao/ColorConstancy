@@ -3,7 +3,8 @@
 
 #### Load a spectral image
 ```python
-img = SpectralImage('path_to_img.exr') # load the exr image file
+img1 = SpectralImage.NewFromFile('path_to_img.exr') # load the exr image file
+img2 = SpectralImage.NewFromSpectrum(np_ndarray) 
 print(img[405]) # print out the spectral intensity at 405nm
 ```
 
