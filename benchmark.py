@@ -69,15 +69,18 @@ class SpectralImage:
 
 
 class BaseBench:
+
+    NAME: str
+
     def __init__(self, test_img: SpectralImage, truth_img: SpectralImage):
         self.test_img = test_img
         self.ground_truth = truth_img
 
     def get_test_reflectance(self) -> SpectralImage:
-        pass
+        raise NotImplementedError("function should be overrided")
 
     def get_test_emission_map(self) -> SpectralImage:
-        pass
+        raise NotImplementedError("function should be overrided")
 
     # probably we should have a evalute
     # interface for different evalute methods
