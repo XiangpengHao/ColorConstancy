@@ -16,10 +16,14 @@ img.dump_to_sRGB_image('output_rgb.exr')
 
 #### Evaluate shades of grey
 ```python
-from benchmark import SpectralImage
-from algorithms.shades_of_gray import ShadesOfGray
-img = SpectralImage.NewFromFile('vp_0_combine.exr')
-b = ShadesOfGray(img, None)
-reflectance = b.get_test_reflectance()
-reflectance.dump_to_sRGB_image('test_b.exr')
+from benchmark import SpectralImage, BaseBench
+from algorithms.shades_of_gray import AverageRGB, MaxRGB
+
+
+algs: [BaseBench] = [AverageRGB, MaxRGB]
+img = SpectralImage.NewFromFile('test_fixtures/vp_0_combined.exr')
+
+for algorithm in algs:
+    refl = algorithm(img, None).get_test_reflectance()
+    refl.dump_to_sRGB_image(f'dist/{algorithm.NAME}_refl.exr')
 ```
