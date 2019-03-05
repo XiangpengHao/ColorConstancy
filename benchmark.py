@@ -73,14 +73,14 @@ class BaseBench:
         self.test_img = test_img
         self.ground_truth = truth_img
 
-    def get_test_reflectance(self)->SpectralImage:
+    def get_test_reflectance(self) -> SpectralImage:
         pass
 
-    def get_test_emission_map(self)->SpectralImage:
+    def get_test_emission_map(self) -> SpectralImage:
         pass
 
     # probably we should have a evalute
     # interface for different evalute methods
-    def get_score(self)->float:
+    def get_score(self) -> float:
         # currently we do euclidean distance
         pass

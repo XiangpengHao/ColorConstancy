@@ -9,9 +9,9 @@ import functools
 logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.DEBUG)
 
 color_match_dict = {
-    "x": json.load(open("spec/x.json")),
-    "y": json.load(open("spec/y.json")),
-    "z": json.load(open("spec/z.json"))
+    "x": json.load(open("data/x.json")),
+    "y": json.load(open("data/y.json")),
+    "z": json.load(open("data/z.json"))
 }
 
 

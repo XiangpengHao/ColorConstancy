@@ -6,7 +6,6 @@ import functools
 
 np.seterr(all='raise')
 
-SPEC_PATH = 'spec/green_leaf.txt'
 MAX_NATURAL = 4096
 
 MAX_LIGHT_POWER = 120
@@ -96,25 +95,11 @@ def get_natural_spectral(file_name):
     return np.asarray(data)
 
 
-def get_color_match_func():
-    return np.loadtxt('spec/color_match.csv')
-
-
 def get_light_spectral(file_name):
     with open(file_name) as f:
         data = [float(x) / MAX_LIGHT_POWER for x in f.readlines()]
     return np.asarray(data)
 
-
-def main():
-    cmf = np.loadtxt('spec/color_match.csv')
-    data = get_natural_spectral(SPEC_PATH)
-    x = np.dot(cmf[:, 0], data)
-    y = np.dot(cmf[:, 1], data)
-    z = np.dot(cmf[:, 2], data)
-    rgb_l = np.matmul(XYZ2RGB, np.asarray([x, y, z]))
-    print(x, y, z)
-    print(rgb_l[0], rgb_l[1], rgb_l[2])
 
 
 if __name__ == '__main__':
