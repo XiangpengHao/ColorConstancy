@@ -4,6 +4,7 @@ from typing import Dict
 import numpy as np
 from color_space import Spectrum, RGB, XYZ
 import os
+from observers import BaseObserver, two_degree_observer
 
 
 float_pixel = Imath.PixelType(Imath.PixelType.FLOAT)
@@ -12,7 +13,7 @@ channels: [int] = list(range(400, 700, 5))
 
 
 class SpectralImage:
-    def __init__(self, img_file=None, spectrum=np.ndarray):
+    def __init__(self, img_file: str = None, spectrum: np.ndarray = None):
         self.img_file = img_file
         self.img_shape = spectrum.shape[:-1]
         self.spectrum = spectrum
@@ -43,13 +44,13 @@ class SpectralImage:
             spectrum, wave_length_map[sorted_waves[-1]], axis=2)
         return SpectralImage(img_file, spectrum)
 
-    def dump_to_sRGB_image(self, output: str):
+    def dump_to_sRGB_image(self, output: str, observer: BaseObserver = two_degree_observer):
         rgb_image = np.zeros(
             (self.img_shape[0], self.img_shape[1], 3), dtype=np.double)
         for i in range(self.img_shape[0]):
             for j in range(self.img_shape[1]):
-                xyz = Spectrum.spec_to_xyz(self.spectrum[i, j, :])
-                rgb_image[i, j, :] = xyz.to_linear_rgb().np_rgb
+                rgb_image[i, j, :] = observer.spec_to_srgb(
+                    self.spectrum[i, j, :]).np_rgb
 
         header = OpenEXR.Header(self.img_shape[1], self.img_shape[0])
         half_chan = Imath.Channel(half_pixel)
@@ -70,7 +71,7 @@ class SpectralImage:
 
 class BaseBench:
 
-    NAME: str
+    NAME: str = ""
 
     def __init__(self, test_img: SpectralImage, truth_img: SpectralImage):
         self.test_img = test_img
@@ -82,8 +83,8 @@ class BaseBench:
     def get_test_emission_map(self) -> SpectralImage:
         raise NotImplementedError("function should be overrided")
 
-    # probably we should have a evalute
-    # interface for different evalute methods
+    # probably we should have a evaluate
+    # interface for different evaluate methods
     def get_score(self) -> float:
         # currently we do euclidean distance
         pass
