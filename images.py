@@ -18,7 +18,7 @@ class sRGBImage:
 
     @classmethod
     def NewFromArray(cls, img_data: np.ndarray):
-        return sRGBImage(None, img_data)
+        return sRGBImage(img_data, None)
 
     @classmethod
     def NewFromFile(cls, file_path: str):
@@ -42,6 +42,21 @@ class sRGBImage:
                          'G': self.img_data[:, :, 1].astype(np.float16).tostring(),
                          'B': self.img_data[:, :, 2].astype(np.float16).tostring()})
         exr.close()
+
+    @property
+    def r(self):
+        return self.img_data[:, :, 0]
+
+    @property
+    def g(self):
+        return self.img_data[:, :, 1]
+
+    @property
+    def b(self):
+        return self.img_data[:, :, 2]
+
+    def __getitem__(self, pixel):
+        return self.img_data[pixel[0], pixel[1], :]
 
 
 class SpectralImage:
