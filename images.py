@@ -15,7 +15,7 @@ half_pixel = Imath.PixelType(Imath.PixelType.HALF)
 channels: [int] = list(range(400, 700, 5))
 
 
-class sRGBImage:
+class RGBImage:
     def __init__(self, img_data: np.ndarray, file_path: str = None):
         self.file_path = file_path
         self.img_data = img_data
@@ -23,7 +23,7 @@ class sRGBImage:
 
     @classmethod
     def NewFromArray(cls, img_data: np.ndarray):
-        return sRGBImage(img_data, None)
+        return RGBImage(img_data, None)
 
     @classmethod
     def NewFromFile(cls, file_path: str):
@@ -36,7 +36,7 @@ class sRGBImage:
             buffed = img_file.channel(c, half_pixel)
             channel_data = np.frombuffer(buffed, dtype=np.float16)
             img_data[:, :, i] = channel_data.reshape(img_shape)
-        return sRGBImage(img_data)
+        return RGBImage(img_data)
 
     def dump_file(self, output: str):
         header = OpenEXR.Header(self.img_shape[1], self.img_shape[0])
@@ -107,14 +107,14 @@ class SpectralImage:
         pickle.dump(spectrum, open(cached_path, 'wb'))
         return SpectralImage(img_file, spectrum)
 
-    def to_srgb(self, observer: BaseObserver = two_degree_observer) -> sRGBImage:
+    def to_rgb(self, observer: BaseObserver = two_degree_observer) -> RGBImage:
         rgb_img = np.zeros(
             (self.img_shape[0], self.img_shape[1], 3), dtype=np.double)
         for i in range(self.img_shape[0]):
             for j in range(self.img_shape[1]):
-                rgb_img[i, j, :] = observer.spec_to_srgb(
+                rgb_img[i, j, :] = observer.spec_to_rgb(
                     self.spectrum[i, j, :]).np_rgb
-        return sRGBImage(rgb_img)
+        return RGBImage(rgb_img)
 
     @property
     def header(self):

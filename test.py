@@ -1,12 +1,12 @@
 from benchmark import BaseBench
 from algorithms.shades_of_gray import AverageRGB, MaxRGB, PNorm
-from images import SpectralImage, sRGBImage
+from images import SpectralImage, RGBImage
 
 test_file = 'test1'
 
 algs: [BaseBench] = [AverageRGB, MaxRGB, PNorm]
 spectral_img = SpectralImage.NewFromFile(f'fixtures/{test_file}.exr')
-rgb_img = spectral_img.to_srgb()
+rgb_img = spectral_img.to_rgb()
 
 for algorithm in algs:
     refl = algorithm(rgb_img, None).get_test_reflectance()

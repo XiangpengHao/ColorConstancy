@@ -1,6 +1,6 @@
 from benchmark import BaseBench
 import numpy as np
-from images import sRGBImage, SpectralImage
+from images import RGBImage, SpectralImage
 
 SPECTRUM_LENGTH = 61
 
@@ -8,7 +8,7 @@ SPECTRUM_LENGTH = 61
 class AverageRGB(BaseBench):
     NAME = 'average_rgb'
 
-    def get_test_reflectance(self) -> sRGBImage:
+    def get_test_reflectance(self) -> RGBImage:
         estimated = np.zeros(3)
         for i in range(3):
             estimated[i] = np.average(self.test_img.img_data[:, :, i])
@@ -19,13 +19,13 @@ class AverageRGB(BaseBench):
             for j in range(shape[1]):
                 reflectance[i, j, :] = self.test_img.img_data[i,
                                                               j, :]/estimated
-        return sRGBImage.NewFromArray(reflectance)
+        return RGBImage.NewFromArray(reflectance)
 
 
 class MaxRGB(BaseBench):
     NAME = 'max_rgb'
 
-    def get_test_reflectance(self) -> sRGBImage:
+    def get_test_reflectance(self) -> RGBImage:
         estimated = np.zeros(3)
         for i in range(3):
             estimated[i] = np.max(self.test_img.img_data[:, :, i])
@@ -36,7 +36,7 @@ class MaxRGB(BaseBench):
             for j in range(shape[1]):
                 reflectance[i, j, :] = self.test_img.img_data[i,
                                                               j, :]/estimated
-        return sRGBImage.NewFromArray(reflectance)
+        return RGBImage.NewFromArray(reflectance)
 
 
 class PNorm(BaseBench):
@@ -44,7 +44,7 @@ class PNorm(BaseBench):
 
     P = 5
 
-    def get_test_reflectance(self) -> sRGBImage:
+    def get_test_reflectance(self) -> RGBImage:
         estimated = np.zeros(3)
 
         img_shape = self.test_img.img_shape
@@ -63,4 +63,4 @@ class PNorm(BaseBench):
             for j in range(shape[1]):
                 reflectance[i, j, :] = self.test_img.img_data[i,
                                                               j, :]/estimated
-        return sRGBImage.NewFromArray(reflectance)
+        return RGBImage.NewFromArray(reflectance)

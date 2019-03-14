@@ -22,17 +22,21 @@ class SpecType(Enum):
 
 
 class RGB:
-    def __init__(self, r: float, g: float, b: float, spec_type: SpecType = SpecType.REFLECTANCE):
+    def __init__(self, r: float, g: float, b: float, is_linear: bool = False):
         self.r: float = r
         self.g: float = g
         self.b: float = b
-        self.spec_type: SpecType = spec_type
+        self.is_linear = is_linear
         self.np_rgb: np.ndarray = np.asarray([r, g, b])
 
     def to_xyz(self):
-        rgb_gamma_rev = [utils.gamma_correct_rev(v) for v in self.np_rgb]
-        xyz = np.matmul(utils.RGB2XYZ, rgb_gamma_rev)
-        return XYZ(xyz[0], xyz[1], xyz[2])
+        if(self.is_linear):
+            xyz = np.matmul(utils.RGB2XYZ, self.np_rgb)
+            return XYZ(*xyz)
+        else:
+            rgb_gamma_rev = [utils.gamma_correct_rev(v) for v in self.np_rgb]
+            xyz = np.matmul(utils.RGB2XYZ, rgb_gamma_rev)
+            return XYZ(*xyz)
 
     def to_uint8(self, verbose=False) -> np.ndarray:
         return np.rint(self.np_rgb * 255).clip(0, 255).astype(np.uint8)
@@ -67,7 +71,7 @@ class XYZ:
                    utils.gamma_correct(rgb[1]),
                    utils.gamma_correct(rgb[2]))
 
-    def to_linear_rgb(self, norm: bool=False)->RGB:
+    def to_rgb(self, norm: bool = False) -> RGB:
         if norm:
             xyz = self.norm().np_xyz
         else:
