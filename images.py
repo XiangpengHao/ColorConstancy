@@ -2,8 +2,13 @@ import numpy as np
 import OpenEXR
 import Imath
 from typing import Dict
+import os
+import pickle
+import logging
 from observers import BaseObserver, two_degree_observer
+from joblib import Parallel, delayed
 
+logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 
 float_pixel = Imath.PixelType(Imath.PixelType.FLOAT)
 half_pixel = Imath.PixelType(Imath.PixelType.HALF)
@@ -71,6 +76,14 @@ class SpectralImage:
 
     @classmethod
     def NewFromFile(cls, file_path: str):
+        # lets check if there's a cached file
+        file_name = os.path.split(file_path)[-1]
+        cached_path = f'dist/__cache__{file_name}.pkl'
+        if(os.path.exists(cached_path)):
+            logging.info('load from cached file %s', cached_path)
+            spectrum = pickle.load(open(cached_path, 'rb'))
+            return SpectralImage(file_path, spectrum)
+
         img_file = OpenEXR.InputFile(file_path)
         dw = img_file.header()['dataWindow']
         img_shape = (dw.max.y - dw.min.y + 1, dw.max.x - dw.min.x + 1)
@@ -89,6 +102,9 @@ class SpectralImage:
         # pad to 400, 700 inclusive
         spectrum = np.append(
             spectrum, wave_length_map[sorted_waves[-1]], axis=2)
+
+        # let's cache the spectrum
+        pickle.dump(spectrum, open(cached_path, 'wb'))
         return SpectralImage(img_file, spectrum)
 
     def to_srgb(self, observer: BaseObserver = two_degree_observer) -> sRGBImage:
