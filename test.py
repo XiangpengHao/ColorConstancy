@@ -17,4 +17,4 @@ for algorithm in algs:
     refl = alg_ins.get_reflectance()
     refl.dump_file(f'dist/{test_file}_{algorithm.NAME}_refl.exr')
     angular_error = alg_ins.get_angular_error(rgb_grundtruth)
-    alg_ins.draw_heatmap(angular_error, 'a')
+    alg_ins.draw_heatmap(angular_error, test_file)

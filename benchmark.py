@@ -30,23 +30,26 @@ class BaseBench:
         result = np.zeros(img_shape)
         for i in range(img_shape[0]):
             for j in range(img_shape[1]):
-                result[i, j] = BaseBench.get_angle(
+                result[i, j] = self.get_angle(
                     self.reflectance_map[i, j], ground_truth[i, j])
         self.angular_error = result
         return result
 
-    @staticmethod
-    def draw_heatmap(error_map, output: str):
-        plt.imshow(error_map, 'hot')
-        plt.show()
+    def draw_heatmap(self, error_map, test_file: str):
+        plt.figure()
+        plt.imshow(error_map, cmap='hot')
+        plt.title(f'mean error: {np.average(error_map)}')
+        plt.colorbar()
+        # plt.show()
+        plt.savefig(f'dist/{test_file}_{self.NAME}_hm.png')
 
-    @staticmethod
-    def get_angle(v1, v2):
+    def get_angle(self, v1, v2):
         norm_v1 = np.linalg.norm(v1)
         norm_v2 = np.linalg.norm(v2)
         if(norm_v1 == 0 or norm_v2 == 0):
             return 0
-        return np.arccos(np.dot(v1, v2)/(np.linalg.norm(v1)*np.linalg.norm(v2)))
+        return np.degrees(np.arccos(np.dot(v1, v2) /
+                                    (np.linalg.norm(v1)*np.linalg.norm(v2))))
 
     @staticmethod
     def get_distance_error(scene: RGBImage, ground_truth: RGBImage) -> float:
