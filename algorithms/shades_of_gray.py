@@ -8,7 +8,7 @@ SPECTRUM_LENGTH = 61
 class AverageRGB(BaseBench):
     NAME = 'average_rgb'
 
-    def get_test_reflectance(self) -> RGBImage:
+    def get_reflectance(self) -> RGBImage:
         estimated = np.zeros(3)
         for i in range(3):
             estimated[i] = np.average(self.test_img.img_data[:, :, i])
@@ -25,7 +25,7 @@ class AverageRGB(BaseBench):
 class MaxRGB(BaseBench):
     NAME = 'max_rgb'
 
-    def get_test_reflectance(self) -> RGBImage:
+    def get_reflectance(self) -> RGBImage:
         estimated = np.zeros(3)
         for i in range(3):
             estimated[i] = np.max(self.test_img.img_data[:, :, i])
@@ -44,7 +44,7 @@ class PNorm(BaseBench):
 
     P = 5
 
-    def get_test_reflectance(self) -> RGBImage:
+    def get_reflectance(self) -> RGBImage:
         estimated = np.zeros(3)
 
         img_shape = self.test_img.img_shape
