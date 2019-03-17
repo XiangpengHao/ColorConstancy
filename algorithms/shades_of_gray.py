@@ -19,7 +19,8 @@ class AverageRGB(BaseBench):
             for j in range(shape[1]):
                 reflectance[i, j, :] = self.test_img.img_data[i,
                                                               j, :]/estimated
-        return RGBImage.NewFromArray(reflectance)
+        self.reflectance_map = RGBImage.NewFromArray(reflectance)
+        return self.reflectance_map
 
 
 class MaxRGB(BaseBench):
@@ -36,7 +37,8 @@ class MaxRGB(BaseBench):
             for j in range(shape[1]):
                 reflectance[i, j, :] = self.test_img.img_data[i,
                                                               j, :]/estimated
-        return RGBImage.NewFromArray(reflectance)
+        self.reflectance_map = RGBImage.NewFromArray(reflectance)
+        return self.reflectance_map
 
 
 class PNorm(BaseBench):
@@ -63,4 +65,5 @@ class PNorm(BaseBench):
             for j in range(shape[1]):
                 reflectance[i, j, :] = self.test_img.img_data[i,
                                                               j, :]/estimated
-        return RGBImage.NewFromArray(reflectance)
+        self.reflectance_map = RGBImage.NewFromArray(reflectance)
+        return self.reflectance_map

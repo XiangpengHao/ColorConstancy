@@ -7,6 +7,7 @@ import pickle
 import logging
 from observers import BaseObserver, two_degree_observer
 from joblib import Parallel, delayed
+from PIL import Image
 
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 
@@ -27,16 +28,24 @@ class RGBImage:
 
     @classmethod
     def NewFromFile(cls, file_path: str):
-        img_file = OpenEXR.InputFile(file_path)
-        dw = img_file.header()['dataWindow']
-        img_shape = (dw.max.y - dw.min.y + 1, dw.max.x - dw.min.x + 1)
+        if(file_path.endswith('exr')):
+            # exr file loading
+            img_file = OpenEXR.InputFile(file_path)
+            dw = img_file.header()['dataWindow']
+            img_shape = (dw.max.y - dw.min.y + 1, dw.max.x - dw.min.x + 1)
 
-        img_data = np.zeros((*img_shape, 3), dtype=float)
-        for i, c in enumerate("RGB"):
-            buffed = img_file.channel(c, half_pixel)
-            channel_data = np.frombuffer(buffed, dtype=np.float16)
-            img_data[:, :, i] = channel_data.reshape(img_shape)
-        return RGBImage(img_data)
+            img_data = np.zeros((*img_shape, 3), dtype=float)
+            for i, c in enumerate("RGB"):
+                buffed = img_file.channel(c, half_pixel)
+                channel_data = np.frombuffer(buffed, dtype=np.float16)
+                img_data[:, :, i] = channel_data.reshape(img_shape)
+            return RGBImage(img_data)
+
+        elif(file_path.endswith('png') or file_path.endswith('jpg')):
+            # png file loading
+            logging.warn('loading png file is experimental, assuming linear RGB...')
+            img = Image.open(file_path)
+            return RGBImage(np.array(img))
 
     def dump_file(self, output: str):
         header = OpenEXR.Header(self.img_shape[1], self.img_shape[0])
