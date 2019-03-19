@@ -43,7 +43,8 @@ class RGBImage:
 
         elif(file_path.endswith('png') or file_path.endswith('jpg')):
             # png file loading
-            logging.warn('loading png file is experimental, assuming linear RGB...')
+            logging.warn(
+                'loading png file is experimental, assuming linear RGB...')
             img = Image.open(file_path)
             return RGBImage(np.array(img))
 
@@ -84,11 +85,11 @@ class SpectralImage:
         return SpectralImage(None, spectrum)
 
     @classmethod
-    def NewFromFile(cls, file_path: str):
+    def NewFromFile(cls, file_path: str, use_cache=True):
         # lets check if there's a cached file
         file_name = os.path.split(file_path)[-1]
         cached_path = f'dist/__cache__{file_name}.pkl'
-        if(os.path.exists(cached_path)):
+        if os.path.exists(cached_path) and use_cache:
             logging.info('load from cached file %s', cached_path)
             spectrum = pickle.load(open(cached_path, 'rb'))
             return SpectralImage(file_path, spectrum)
@@ -112,15 +113,16 @@ class SpectralImage:
         spectrum = np.append(
             spectrum, wave_length_map[sorted_waves[-1]], axis=2)
 
-        # let's cache the spectrum
-        pickle.dump(spectrum, open(cached_path, 'wb'))
+        if use_cache:
+            # let's cache the spectrum
+            pickle.dump(spectrum, open(cached_path, 'wb'))
         return SpectralImage(file_path, spectrum)
 
-    def to_rgb(self, observer: BaseObserver = two_degree_observer) -> RGBImage:
+    def to_rgb(self, observer: BaseObserver = two_degree_observer, use_cache=True) -> RGBImage:
         # check if there's a cache
         file_name = os.path.split(self.img_file)[-1]
         cached_path = f'dist/__cache__rgb__{file_name}.pkl'
-        if(os.path.exists(cached_path)):
+        if os.path.exists(cached_path) and use_cache:
             logging.info('using cached rgb file')
             rgb_img = pickle.load(open(cached_path, 'rb'))
             return RGBImage(rgb_img)
@@ -132,7 +134,8 @@ class SpectralImage:
                 rgb_img[i, j, :] = observer.spec_to_rgb(
                     self.spectrum[i, j, :]).np_rgb
 
-        pickle.dump(rgb_img, open(cached_path, 'wb'))
+        if use_cache:
+            pickle.dump(rgb_img, open(cached_path, 'wb'))
         return RGBImage(rgb_img)
 
     @property
