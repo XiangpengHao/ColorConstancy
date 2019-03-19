@@ -32,7 +32,7 @@ class BaseBench:
     reflectance_map: RGBImage = None
     angular_error: np.ndarray = None
 
-    def __init__(self, test_img):
+    def __init__(self, test_img: RGBImage):
         self.test_img = test_img
 
     def get_reflectance(self) -> RGBImage:
@@ -40,6 +40,24 @@ class BaseBench:
 
     def get_emission(self) -> RGBImage:
         raise NotImplementedError("function should be overrided")
+
+    def get_best_single_illuminant(self, ground_truth: RGBImage) -> np.array:
+        rv = []
+        for i in range(3):
+            A = self.test_img[:, :, i].flatten()
+            B = ground_truth[:, :, i].flatten()
+            rv.append(np.dot(A, B)/np.dot(B, B))
+        return np.array(rv)
+
+    def adjust_single_illuminant(self, illuminant: np.array) -> RGBImage:
+        shape = self.test_img.img_shape
+        reflectance = np.zeros((*shape, 3))
+        for i in range(shape[0]):
+            for j in range(shape[1]):
+                reflectance[i, j, :] = self.test_img.img_data[i,
+                                                              j, :]/illuminant
+        self.reflectance_map = RGBImage.NewFromArray(reflectance)
+        return self.reflectance_map
 
     def get_error(self, ground_truth: RGBImage, metric=get_angle) -> np.ndarray:
         if(self.reflectance_map == None):

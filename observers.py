@@ -31,5 +31,7 @@ class TwoDegreeObserver(BaseObserver):
         z_val: float = np.dot(spectrum, self.observer['z']['data'])
         return XYZ(x_val, y_val, z_val).to_rgb()
 
+# TODO: support 10-degree observer
+
 
 two_degree_observer = TwoDegreeObserver("data/two_degree")
