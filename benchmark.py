@@ -6,6 +6,9 @@ from images import RGBImage, SpectralImage
 import matplotlib
 import matplotlib.pyplot as plt
 
+import logging
+logging.getLogger('matplotlib').setLevel(logging.WARNING)
+
 
 def get_angle(v1, v2):
     norm_v1 = np.linalg.norm(v1)
