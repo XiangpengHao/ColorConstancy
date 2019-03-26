@@ -49,7 +49,7 @@ class BaseBench:
         for i in range(3):
             A = self.test_img[:, :, i].flatten()
             B = ground_truth[:, :, i].flatten()
-            rv.append(np.dot(A, B)/np.dot(B, B))
+            rv.append(np.dot(A, A)/np.dot(B, A))
         return np.array(rv)
 
     def adjust_single_illuminant(self, illuminant: np.array) -> RGBImage:
