@@ -67,17 +67,19 @@ class XYZ:
         else:
             xyz = self.np_xyz
         rgb = np.matmul(utils.XYZ2RGB, xyz)
-        return RGB(utils.gamma_correct(rgb[0]),
-                   utils.gamma_correct(rgb[1]),
-                   utils.gamma_correct(rgb[2]))
+        cliped_rgb = np.clip(rgb, 0, None)
+        return RGB(utils.gamma_correct(cliped_rgb[0]),
+                   utils.gamma_correct(cliped_rgb[1]),
+                   utils.gamma_correct(cliped_rgb[2]))
 
     def to_rgb(self, norm: bool = False) -> RGB:
         if norm:
             xyz = self.norm().np_xyz
         else:
             xyz = self.np_xyz
-        rbg = np.matmul(utils.XYZ2RGB, xyz)
-        return RGB(rbg[0], rbg[1], rbg[2])
+        rgb = np.matmul(utils.XYZ2RGB, xyz)
+        cliped_rgb = np.clip(rgb, 0, None)
+        return RGB(cliped_rgb[0], cliped_rgb[1], cliped_rgb[2])
 
     @functools.lru_cache(maxsize=500)
     def in_srgb(self) -> bool:

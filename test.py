@@ -21,8 +21,7 @@ for algorithm in algs:
     alg_ins.draw_heatmap(distance_error, f'{test_file}_dis')
 
 base_bench = BaseBench(test_img)
-light = base_bench.get_best_single_illuminant(groundtruth_img)
-best_single = base_bench.adjust_single_illuminant(light)
+best_single = base_bench.get_best_single_adjustment(groundtruth_img)
 best_single.dump_file(f'dist/{test_file}_best_refl.exr')
 angular_error = base_bench.get_error(groundtruth_img, get_angle)
 dis_error = base_bench.get_error(groundtruth_img, get_chrom_distance)

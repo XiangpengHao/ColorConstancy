@@ -8,6 +8,7 @@ import logging
 from observers import BaseObserver, two_degree_observer
 from joblib import Parallel, delayed
 from PIL import Image
+from color_space import RGB, XYZ
 
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 
@@ -47,6 +48,14 @@ class RGBImage:
                 'loading png file is experimental, assuming linear RGB...')
             img = Image.open(file_path)
             return RGBImage(np.array(img))
+
+    def get_xyz_image(self) -> np.array:
+        xyz_image = np.zeros((*self.img_shape, 3))
+        for i in range(self.img_shape[0]):
+            for j in range(self.img_shape[1]):
+                xyz_image[i, j, :] = RGB(
+                    *self.img_data[i, j, :], True).to_xyz().norm().np_xyz
+        return xyz_image
 
     def dump_file(self, output: str):
         header = OpenEXR.Header(self.img_shape[1], self.img_shape[0])
@@ -147,6 +156,7 @@ class SpectralImage:
                 rgb_img[i, j, :] = observer.spec_to_rgb(
                     self.spectrum[i, j, :]).np_rgb
 
+        assert(np.amin(rgb_img) >= 0)
         if use_cache:
             pickle.dump(rgb_img, open(cached_path, 'wb'))
         return RGBImage(rgb_img)

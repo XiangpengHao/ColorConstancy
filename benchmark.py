@@ -44,16 +44,31 @@ class BaseBench:
     def get_emission(self) -> RGBImage:
         raise NotImplementedError("function should be overrided")
 
-    def get_best_single_illuminant(self, ground_truth: RGBImage) -> np.array:
+    def get_best_single_adjustment(self, ground_truth: RGBImage) -> np.array:
+        shape = self.test_img.img_shape
+        xyz_img = self.test_img.get_xyz_image()
+        xyz_truth = ground_truth.get_xyz_image()
+
         rv = []
         for i in range(3):
-            A = self.test_img[:, :, i].flatten()
-            B = ground_truth[:, :, i].flatten()
+            A = xyz_img[:, :, i].flatten()
+            B = xyz_truth[:, :, i].flatten()
             rv.append(np.dot(A, A)/np.dot(B, A))
-        return np.array(rv)
+
+        adjusted_img = np.zeros((*shape, 3))
+        for i in range(shape[0]):
+            for j in range(shape[1]):
+                raw_xyz = RGB(*self.test_img[i, j, :], True).to_xyz()
+                adjusted_xyz = np.multiply(xyz_img[i, j, :], rv) * \
+                    (raw_xyz.y/xyz_img[i, j, 1])
+                adjusted_img[i, j, :] = XYZ(*adjusted_xyz).to_rgb().np_rgb
+
+        self.reflectance_map = RGBImage.NewFromArray(adjusted_img)
+        return self.reflectance_map
 
     def adjust_single_illuminant(self, illuminant: np.array) -> RGBImage:
         shape = self.test_img.img_shape
+
         reflectance = np.zeros((*shape, 3))
         for i in range(shape[0]):
             for j in range(shape[1]):
