@@ -142,12 +142,13 @@ class SpectralImage:
 
     def to_rgb(self, observer: BaseObserver = two_degree_observer, use_cache=True) -> RGBImage:
         # check if there's a cache
-        file_name = os.path.split(self.img_file)[-1]
-        cached_path = f'dist/__cache__rgb__{file_name}.pkl'
-        if os.path.exists(cached_path) and use_cache:
-            logging.info('using cached rgb file')
-            rgb_img = pickle.load(open(cached_path, 'rb'))
-            return RGBImage(rgb_img)
+        if use_cache:
+            file_name = os.path.split(self.img_file)[-1]
+            cached_path = f'dist/__cache__rgb__{file_name}.pkl'
+            if os.path.exists(cached_path):
+                logging.info('using cached rgb file')
+                rgb_img = pickle.load(open(cached_path, 'rb'))
+                return RGBImage(rgb_img)
 
         rgb_img = np.zeros(
             (self.img_shape[0], self.img_shape[1], 3), dtype=np.double)
@@ -160,6 +161,14 @@ class SpectralImage:
         if use_cache:
             pickle.dump(rgb_img, open(cached_path, 'wb'))
         return RGBImage(rgb_img)
+
+    def apply_illuminant(self, illuminant):
+        new_spectral = np.zeros((self.spectrum.shape))
+        for i in range(self.img_shape[0]):
+            for j in range(self.img_shape[1]):
+                new_spectral[i, j, :] = np.multiply(
+                    self.spectrum[i, j, :], illuminant)
+        return SpectralImage.NewFromSpectrum(new_spectral)
 
     @property
     def header(self):
