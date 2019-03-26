@@ -70,7 +70,7 @@ class RGBImage:
     def dump_png(self, output: str):
         # here we use the vanilla method: map values to 0-255
         # save as linear rgb, not for display purpose
-        total_pixels = self.img_shape[0]*self.img_shape[1]
+        total_pixels = self.img_shape[0]*self.img_shape[1]*3
         top_5_pixels = int(total_pixels*0.05)
         max_5_pixels = np.argpartition(
             self.img_data.ravel(), -top_5_pixels)[-top_5_pixels:]
