@@ -43,7 +43,7 @@ class BaseBench:
 
         self.img_list = os.listdir(input_dir)
 
-        self.curr_idx: int = 0
+        self.curr_idx: int = -1
         self.curr_refl: RGBImage = None
 
     def get_emission(self) -> RGBImage:
@@ -62,8 +62,9 @@ class BaseBench:
     def get_next_refl(self) -> RGBImage:
         if not self.has_next():
             return None
-        self.curr_refl = RGBImage.NewFromFile(
-            f'{self.output_dir}/{self.img_list[self.curr_idx]}')
+        self.curr_idx += 1
+        next_file_path = f'{self.output_dir}/{self.img_list[self.curr_idx]}'
+        self.curr_refl = RGBImage.NewFromFile(next_file_path)
         return self.curr_refl
 
     def get_best_single_adjustment(self, ground_truth: RGBImage) -> np.array:
@@ -85,7 +86,7 @@ class BaseBench:
                     (raw_xyz.y/xyz_img[i, j, 1])
                 adjusted_img[i, j, :] = XYZ(*adjusted_xyz).to_rgb().np_rgb
 
-        self.curr_refl= RGBImage.NewFromArray(adjusted_img)
+        self.curr_refl = RGBImage.NewFromArray(adjusted_img)
         return self.curr_refl
 
     def adjust_single_illuminant(self, illuminant: np.array) -> RGBImage:
@@ -96,7 +97,7 @@ class BaseBench:
             for j in range(shape[1]):
                 reflectance[i, j, :] = self.curr_refl.img_data[i,
                                                                j, :]/illuminant
-        self.curr_refl= RGBImage.NewFromArray(reflectance)
+        self.curr_refl = RGBImage.NewFromArray(reflectance)
         return self.curr_refl
 
     def get_error(self, metric=metric_angle) -> np.ndarray:
@@ -112,7 +113,7 @@ class BaseBench:
 
         return result
 
-    @functools.lru_cache(maxsize=30)
+    # @functools.lru_cache(maxsize=30)
     def get_groundtruth(self, curr_img_name: str):
         curr_img_prefix = curr_img_name.split('.')[0]
         return RGBImage.NewFromFile(f'{self.groundtruth_dir}/{curr_img_prefix}_truth.exr')

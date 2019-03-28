@@ -58,14 +58,19 @@ class RGBImage:
         return xyz_image
 
     def dump_file(self, output: str):
-        header = OpenEXR.Header(self.img_shape[1], self.img_shape[0])
-        half_chan = Imath.Channel(half_pixel)
-        header['channels'] = dict([(c, half_chan) for c in 'RGB'])
-        exr = OpenEXR.OutputFile(output, header)
-        exr.writePixels({'R': self.img_data[:, :, 0].astype(np.float16).tostring(),
-                         'G': self.img_data[:, :, 1].astype(np.float16).tostring(),
-                         'B': self.img_data[:, :, 2].astype(np.float16).tostring()})
-        exr.close()
+        if output.endswith('png'):
+            image = Image.fromarray(
+                np.rint(self.img_data).clip(0, 255).astype(np.uint8))
+            image.save(output)
+        elif output.endswith('exr'):
+            header = OpenEXR.Header(self.img_shape[1], self.img_shape[0])
+            half_chan = Imath.Channel(half_pixel)
+            header['channels'] = dict([(c, half_chan) for c in 'RGB'])
+            exr = OpenEXR.OutputFile(output, header)
+            exr.writePixels({'R': self.img_data[:, :, 0].astype(np.float16).tostring(),
+                             'G': self.img_data[:, :, 1].astype(np.float16).tostring(),
+                             'B': self.img_data[:, :, 2].astype(np.float16).tostring()})
+            exr.close()
 
     def dump_png(self, output: str):
         # here we use the vanilla method: map values to 0-255
