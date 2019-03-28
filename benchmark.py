@@ -5,6 +5,7 @@ from color_space import Spectrum, RGB, XYZ
 from images import RGBImage, SpectralImage
 import matplotlib
 import matplotlib.pyplot as plt
+import os
 
 import logging
 logging.getLogger('matplotlib').setLevel(logging.WARNING)
@@ -35,21 +36,29 @@ class BaseBench:
     reflectance_map: RGBImage = None
     angular_error: np.ndarray = None
 
-    def __init__(self, img_dir: str):
-        self.img_dir = img_dir
-        self.curr_img = None
+    def __init__(self, input_dir: str, output_dir: str):
+        self.input_dir = input_dir
+        self.output_dir = output_dir
+        self.img_list = os.listdir(input_dir)
 
-    def get_reflectance(self) -> RGBImage:
-        raise NotImplementedError("function should be overrided")
+        self.curr_idx = 0
+        self.curr_img = None
 
     def get_emission(self) -> RGBImage:
         raise NotImplementedError("function should be overrided")
-    
+
     def run(self):
         raise NotImplementedError("function should be overrided")
 
-    def get_next_refl(self)->RGBImage:
-        return
+    def has_next(self):
+        return self.curr_idx < len(self.img_list)
+
+    def get_next_refl(self) -> RGBImage:
+        if not self.has_next():
+            return None
+        self.curr_img = RGBImage.NewFromFile(
+            f'{self.output_dir}/{self.img_list[self.curr_idx]}')
+        return self.curr_img
 
     def get_best_single_adjustment(self, ground_truth: RGBImage) -> np.array:
         shape = self.curr_img.img_shape
