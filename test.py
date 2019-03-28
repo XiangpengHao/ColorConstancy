@@ -6,13 +6,17 @@ from images import SpectralImage, RGBImage
 test_file = 'test1.exr'
 groundtruth_file = 'test1_truth.exr'
 
-algs: [BaseBench] = [AverageRGB, MaxRGB, PNorm, MixedKmeans]
+test_dir = 'fixtures/test'
+groundtruth_dir = 'fixtures/test'
+
+algs: [BaseBench] = [AverageRGB, MaxRGB]
 test_img = RGBImage.NewFromFile(f'fixtures/{test_file}')
 
 groundtruth_img = RGBImage.NewFromFile(f'fixtures/{groundtruth_file}')
 
 for algorithm in algs:
-    alg_ins = algorithm(test_img)
+    alg_ins = algorithm(test_img).run()
+
     refl = alg_ins.get_reflectance()
     refl.dump_file(f'dist/{test_file}_{algorithm.NAME}_refl.exr')
     angular_error = alg_ins.get_error(groundtruth_img, get_angle)

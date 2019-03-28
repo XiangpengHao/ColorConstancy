@@ -35,18 +35,25 @@ class BaseBench:
     reflectance_map: RGBImage = None
     angular_error: np.ndarray = None
 
-    def __init__(self, test_img: RGBImage):
-        self.test_img = test_img
+    def __init__(self, img_dir: str):
+        self.img_dir = img_dir
+        self.curr_img = None
 
     def get_reflectance(self) -> RGBImage:
         raise NotImplementedError("function should be overrided")
 
     def get_emission(self) -> RGBImage:
         raise NotImplementedError("function should be overrided")
+    
+    def run(self):
+        raise NotImplementedError("function should be overrided")
+
+    def get_next_refl(self)->RGBImage:
+        return
 
     def get_best_single_adjustment(self, ground_truth: RGBImage) -> np.array:
-        shape = self.test_img.img_shape
-        xyz_img = self.test_img.get_xyz_image()
+        shape = self.curr_img.img_shape
+        xyz_img = self.curr_img.get_xyz_image()
         xyz_truth = ground_truth.get_xyz_image()
 
         rv = []
@@ -58,7 +65,7 @@ class BaseBench:
         adjusted_img = np.zeros((*shape, 3))
         for i in range(shape[0]):
             for j in range(shape[1]):
-                raw_xyz = RGB(*self.test_img[i, j, :], True).to_xyz()
+                raw_xyz = RGB(*self.curr_img[i, j, :], True).to_xyz()
                 adjusted_xyz = np.multiply(xyz_img[i, j, :], rv) * \
                     (raw_xyz.y/xyz_img[i, j, 1])
                 adjusted_img[i, j, :] = XYZ(*adjusted_xyz).to_rgb().np_rgb
@@ -67,12 +74,12 @@ class BaseBench:
         return self.reflectance_map
 
     def adjust_single_illuminant(self, illuminant: np.array) -> RGBImage:
-        shape = self.test_img.img_shape
+        shape = self.curr_img.img_shape
 
         reflectance = np.zeros((*shape, 3))
         for i in range(shape[0]):
             for j in range(shape[1]):
-                reflectance[i, j, :] = self.test_img.img_data[i,
+                reflectance[i, j, :] = self.curr_img.img_data[i,
                                                               j, :]/illuminant
         self.reflectance_map = RGBImage.NewFromArray(reflectance)
         return self.reflectance_map
