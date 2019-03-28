@@ -43,6 +43,9 @@ class BaseBench:
 
         self.img_list = os.listdir(input_dir)
 
+        assert(not os.path.exists(self.output_dir))
+        os.mkdir(output_dir)
+
         self.curr_idx: int = -1
         self.curr_refl: RGBImage = None
 
@@ -57,7 +60,7 @@ class BaseBench:
         return self.img_list[self.curr_idx]
 
     def has_next(self):
-        return self.curr_idx < len(self.img_list)
+        return (self.curr_idx + 1) < len(self.img_list)
 
     def get_next_refl(self) -> RGBImage:
         if not self.has_next():
@@ -124,4 +127,4 @@ class BaseBench:
         plt.title(f'mean error: {np.average(error_map)}')
         plt.colorbar()
         # plt.show()
-        plt.savefig(f'dist/{output_prefix}_{self.NAME}_hm.png')
+        plt.savefig(f'{self.output_dir}/{output_prefix}_{self.NAME}_hm.png')
