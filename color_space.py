@@ -38,6 +38,14 @@ class RGB:
             xyz = np.matmul(utils.RGB2XYZ, rgb_gamma_rev)
             return XYZ(*xyz)
 
+    @staticmethod
+    def static_to_normed_xyz(rgb):
+        xyz = np.matmul(utils.RGB2XYZ, rgb)
+        xyz_sum = sum(xyz)
+        if xyz_sum == 0:
+            return np.array([0, 0, 0])
+        return xyz/xyz_sum
+
     def to_uint8(self, verbose=False) -> np.ndarray:
         return np.rint(self.np_rgb * 255).clip(0, 255).astype(np.uint8)
 
@@ -80,6 +88,11 @@ class XYZ:
         rgb = np.matmul(utils.XYZ2RGB, xyz)
         cliped_rgb = np.clip(rgb, 0, None)
         return RGB(cliped_rgb[0], cliped_rgb[1], cliped_rgb[2])
+
+    @staticmethod
+    def static_to_rgb(xyz):
+        rgb = np.matmul(utils.XYZ2RGB, xyz)
+        return np.clip(rgb, 0, None)
 
     @functools.lru_cache(maxsize=500)
     def in_srgb(self) -> bool:

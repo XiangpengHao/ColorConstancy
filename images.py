@@ -9,6 +9,7 @@ from observers import BaseObserver, two_degree_observer
 from joblib import Parallel, delayed
 from PIL import Image
 from color_space import RGB, XYZ
+from numba import jit
 
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 
@@ -49,12 +50,13 @@ class RGBImage:
             img = Image.open(file_path)
             return RGBImage(np.array(img))
 
+    @jit(parallel=True, fastmath=True)
     def get_xyz_image(self) -> np.array:
         xyz_image = np.zeros((*self.img_shape, 3))
         for i in range(self.img_shape[0]):
             for j in range(self.img_shape[1]):
-                xyz_image[i, j, :] = RGB(
-                    *self.img_data[i, j, :], True).to_xyz().norm().np_xyz
+                xyz_image[i, j, :] = RGB.static_to_normed_xyz(
+                    self.img_data[i, j, :])
         return xyz_image
 
     def dump_file(self, output: str):

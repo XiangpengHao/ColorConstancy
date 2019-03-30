@@ -8,6 +8,8 @@ import matplotlib.pyplot as plt
 import os
 import functools
 
+from numba import jit
+
 import logging
 logging.getLogger('matplotlib').setLevel(logging.WARNING)
 
@@ -43,11 +45,14 @@ class BaseBench:
 
         self.img_list = os.listdir(input_dir)
 
-        assert(not os.path.exists(self.output_dir))
-        os.mkdir(output_dir)
+        if not os.path.exists(self.output_dir):
+            os.mkdir(output_dir)
 
         self.curr_idx: int = -1
         self.curr_refl: RGBImage = None
+
+        self._groundtruth_cache = {}
+        self._refl_cache = {}
 
     def get_emission(self) -> RGBImage:
         raise NotImplementedError("function should be overrided")
@@ -66,41 +71,11 @@ class BaseBench:
         if not self.has_next():
             return None
         self.curr_idx += 1
-        next_file_path = f'{self.output_dir}/{self.img_list[self.curr_idx]}'
-        self.curr_refl = RGBImage.NewFromFile(next_file_path)
-        return self.curr_refl
-
-    def get_best_single_adjustment(self, ground_truth: RGBImage) -> np.array:
-        shape = self.curr_refl.img_shape
-        xyz_img = self.curr_refl.get_xyz_image()
-        xyz_truth = ground_truth.get_xyz_image()
-
-        rv = []
-        for i in range(3):
-            A = xyz_img[:, :, i].flatten()
-            B = xyz_truth[:, :, i].flatten()
-            rv.append(np.dot(A, A)/np.dot(B, A))
-
-        adjusted_img = np.zeros((*shape, 3))
-        for i in range(shape[0]):
-            for j in range(shape[1]):
-                raw_xyz = RGB(*self.curr_refl[i, j, :], True).to_xyz()
-                adjusted_xyz = np.multiply(xyz_img[i, j, :], rv) * \
-                    (raw_xyz.y/xyz_img[i, j, 1])
-                adjusted_img[i, j, :] = XYZ(*adjusted_xyz).to_rgb().np_rgb
-
-        self.curr_refl = RGBImage.NewFromArray(adjusted_img)
-        return self.curr_refl
-
-    def adjust_single_illuminant(self, illuminant: np.array) -> RGBImage:
-        shape = self.curr_refl.img_shape
-
-        reflectance = np.zeros((*shape, 3))
-        for i in range(shape[0]):
-            for j in range(shape[1]):
-                reflectance[i, j, :] = self.curr_refl.img_data[i,
-                                                               j, :]/illuminant
-        self.curr_refl = RGBImage.NewFromArray(reflectance)
+        file_name = self.img_list[self.curr_idx]
+        if file_name not in self._refl_cache:
+            next_file_path = f'{self.output_dir}/{file_name}'
+            self.curr_refl = RGBImage.NewFromFile(next_file_path)
+            self._refl_cache[file_name] = self.curr_refl
         return self.curr_refl
 
     def get_error(self, metric=metric_angle) -> np.ndarray:
@@ -116,10 +91,12 @@ class BaseBench:
 
         return result
 
-    # @functools.lru_cache(maxsize=30)
     def get_groundtruth(self, curr_img_name: str):
-        curr_img_prefix = curr_img_name.split('.')[0]
-        return RGBImage.NewFromFile(f'{self.groundtruth_dir}/{curr_img_prefix}_truth.exr')
+        if curr_img_name not in self._groundtruth_cache:
+            curr_img_prefix = curr_img_name.split('.')[0]
+            self._groundtruth_cache[curr_img_name] = RGBImage.NewFromFile(
+                f'{self.groundtruth_dir}/{curr_img_prefix}_truth.exr')
+        return self._groundtruth_cache[curr_img_name]
 
     def draw_heatmap(self, error_map, output_prefix: str):
         plt.figure()
