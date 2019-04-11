@@ -14,22 +14,33 @@ import logging
 logging.getLogger('matplotlib').setLevel(logging.WARNING)
 
 
+@jit(nopython=True, fastmath=True)
 def metric_angle(v1, v2):
     norm_v1 = np.linalg.norm(v1)
     norm_v2 = np.linalg.norm(v2)
     if(norm_v1 == 0 or norm_v2 == 0):
         return 0
     return np.degrees(np.arccos(np.dot(v1, v2) /
-                                (np.linalg.norm(v1)*np.linalg.norm(v2))))
+                                (norm_v1*norm_v2)))
 
 
+@jit(nopython=True, fastmath=True)
 def metric_chrom_distance(v1, v2):
-    # this is by no means reasonable, but it happens
     if sum(v1) == 0 or sum(v2) == 0:
         return 0
     normed_r1 = v1/sum(v1)
     normed_r2 = v2/sum(v2)
     return np.linalg.norm(normed_r1[:-1]-normed_r2[:-1])
+
+
+@jit(fastmath=True, nopython=True)
+def get_error(img1: np.ndarray, img2: np.ndarray, metric):
+    img_shape = img1.shape
+    result = np.zeros(img_shape)
+    for i in range(img_shape[0]):
+        for j in range(img_shape[1]):
+            result[i, j] = metric(img1[i, j], img2[i, j])
+    return result
 
 
 class BaseBench:
@@ -82,14 +93,7 @@ class BaseBench:
         if(self.curr_refl == None):
             return None
         ground_truth = self.get_groundtruth(self.curr_img_name)
-        img_shape = self.curr_refl.img_shape
-        result = np.zeros(img_shape)
-        for i in range(img_shape[0]):
-            for j in range(img_shape[1]):
-                result[i, j] = metric(
-                    self.curr_refl[i, j], ground_truth[i, j])
-
-        return result
+        return get_error(self.curr_refl.img_data, ground_truth.img_data, metric)
 
     def get_groundtruth(self, curr_img_name: str):
         if curr_img_name not in self._groundtruth_cache:
